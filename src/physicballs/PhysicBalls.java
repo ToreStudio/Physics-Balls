@@ -24,6 +24,7 @@ public class PhysicBalls extends JFrame {
     private Server server;
     private Space space = new Space(650, 400, 10);
     private int contador=0;//prueba de merge
+    
 
     /**
      * Constructor
