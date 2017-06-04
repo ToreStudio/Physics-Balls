@@ -5,6 +5,7 @@
  */
 package physicballs;
 
+import database.DBHandler;
 import items.Ball;
 import items.Obstacle;
 import items.StopItem;
@@ -30,8 +31,8 @@ public class Space extends Canvas implements Runnable {
     /**
      * Global parameters
      */
-    private static int spaceWidth=1280;
-    private static int spaceHeight=720;
+    private static int spaceWidth = 1280;
+    private static int spaceHeight = 720;
     private Dimension d;
     private String name;
 
@@ -40,9 +41,9 @@ public class Space extends Canvas implements Runnable {
 
     private CopyOnWriteArrayList<Ball> balls;
     private ArrayList<StopItem> stopItems;
-
+    private ArrayList<Obstacle> obstacleList;
     private Obstacle obstaculo;
-    
+
     private final float gravityX = -3f;
     private final float gravityY = 6f;
 
@@ -56,13 +57,21 @@ public class Space extends Canvas implements Runnable {
      */
     public Space(int spaceWidth, int spaceHeigth, int ballLimit) {
         this.ballLimit = ballLimit;
-        d= new Dimension(spaceWidth, spaceHeight);
-        //init
+        d = new Dimension(spaceWidth, spaceHeight);
+
         init();
 
     }
-    
-    public Space(){}
+
+    public Space(int spaceWidth, int spaceHeigth, String spaceName) {
+        this.name = spaceName;
+        d = new Dimension(spaceWidth, spaceHeight);
+//        System.out.println(getName());
+        init();
+    }
+
+    public Space() {
+    }
 
     /**
      * Init
@@ -73,40 +82,55 @@ public class Space extends Canvas implements Runnable {
 
         //Player
         //player = new Player(30, 300, 10, 10, 10, 1, this);
-
         //Ball parameters
         balls = new CopyOnWriteArrayList<>();
+//        balls = new ArrayList<>();
         stopItems = new ArrayList<>();
+        obstacleList = new ArrayList<>();
 
         Ball b;
-        for (int con = 0; con < ballLimit; con++) {
+        DBHandler db = new DBHandler();
+        List<Ball> balllist = db.selectBalls(name);
+        //System.out.println(name);
+        String typechar = "";
+        for (int i = 0; i < balllist.size(); i++) {
+
+            typechar = String.valueOf(balllist.get(i).getType().name().charAt(0));
             if (SpaceRules.sizes) {
-                b=new Ball((float )Math.random()*100, (float )Math.random()*100, 0.5f, 1, 10+con*2, 80,  "N");
+                //System.out.println(list.get(i).getType().name());
+                b = new Ball(balllist.get(i).getX(), balllist.get(i).getY(), (float) balllist.get(i).getSpeed(), balllist.get(i).getAccel(), balllist.get(i).getRadius(), balllist.get(i).getAngle(), typechar);
                 balls.add(b);
             } else {
-                if(con<8){
-                    b=new Ball((float )Math.random()*100, (float )Math.random()*100, 0.5f, 1, 10+con*2, 80,  "N");
-                }else{
-                    b=new Ball((float )Math.random()*100, (float )Math.random()*100, 0.5f, 1, 10+con*2, 80,  "E");
+                if (i < 8) {
+                    // System.out.println(list.get(i).getX()+" "+ list.get(i).getY()+" "+  (float) list.get(i).getSpeed()+" "+  list.get(i).getAccel()+" "+ list.get(i).getRadius()+" "+  list.get(i).getAngle()+" "+ typechar);
+                    b = new Ball(balllist.get(i).getX(), balllist.get(i).getY(), (float) balllist.get(i).getSpeed(), balllist.get(i).getAccel(), balllist.get(i).getRadius(), balllist.get(i).getAngle(), typechar);
+                } else {
+                    b = new Ball(balllist.get(i).getX(), balllist.get(i).getY(), (float) balllist.get(i).getSpeed(), balllist.get(i).getAccel(), balllist.get(i).getRadius(), balllist.get(i).getAngle(), typechar);
                 }
-                
                 balls.add(b);
-
             }
         }
 
-        stopItems.add(new StopItem(400, 200, 50, 50, this));
-        stopItems.add(new StopItem(500, 500, 200, 200, this));
-
-        obstaculo = new Obstacle(300, 200, 30, 60, this);
-
-        //new Thread(player).start();
-
-        for (int con = 0; con < balls.size(); con++) {
-//            new Thread(balls.get(con)).start();
-              new Thread(new ThreadBall(balls.get(con), this)).start();
+        StopItem stopItem;
+        List<StopItem> stoplist = db.selectStopItems(name);
+        for (int i = 0; i < stoplist.size(); i++) {
+            stopItem = new StopItem(stoplist.get(i).getX(), stoplist.get(i).getY(), stoplist.get(i).getWidth(), stoplist.get(i).getHeight(), this);
+            stopItems.add(stopItem);
         }
 
+        Obstacle obstacle;
+        List<Obstacle> obstlist = db.selectObstacles(name);
+        for (int i = 0; i < obstlist.size(); i++) {
+
+            obstacle = new Obstacle(obstlist.get(i).getX(), obstlist.get(i).getY(), obstlist.get(i).getWidth(), obstlist.get(i).getHeight());
+            obstacleList.add(obstacle);
+
+        }
+
+        for (int con = 0; con < balls.size(); con++) {
+//           new Thread(balls.get(con)).start();
+            new Thread(new ThreadBall(balls.get(con), this)).start();
+        }
 
     }
 
@@ -124,31 +148,35 @@ public class Space extends Canvas implements Runnable {
         gg.setColor(Color.black);
         gg.fillRect(0, 0, spaceWidth, spaceHeight);
 
-        stopItems.get(0).draw(gg);
-        stopItems.get(1).draw(gg);
-
-        obstaculo.draw(gg);
+        for (int i = 0; i < stopItems.size(); i++) {
+            stopItems.get(i).draw(gg);
+        }
+        //stopItems.get(0).draw(gg);
+        //stopItems.get(1).draw(gg);
+        
+        for (int i = 0; i < obstacleList.size(); i++) {
+            obstacleList.get(i).draw(gg);
+        }
 
         for (int con = 0; con < balls.size(); con++) {
             balls.get(con).draw(gg);
         }
 
         //player.draw(gg);
-
         bs.show();
 
         gg.dispose();
 
     }
-    
+
     public synchronized void delete(Ball b, int con) {
         balls.get(con).stopBall();
         balls.remove(con);
     }
-    
+
     public synchronized void delete(int con) {
-            balls.get(con).stopBall();
-            balls.remove(con);
+        balls.get(con).stopBall();
+        balls.remove(con);
     }
 
     public CopyOnWriteArrayList<Ball> getBalls() {
@@ -159,14 +187,22 @@ public class Space extends Canvas implements Runnable {
         return stopItems;
     }
 
-    public Obstacle getObstaculo() {
-        return obstaculo;
+//    public Obstacle getObstaculo() {
+//        return obstaculo;
+//    }
+    
+    /**
+     * método mio
+     * @return 
+     */
+    public ArrayList<Obstacle> getObstacle(){
+        return obstacleList;
     }
 
     public float getGravityX() {
         return gravityX;
     }
-    
+
     public float getGravityY() {
         return gravityY;
     }
@@ -206,16 +242,14 @@ public class Space extends Canvas implements Runnable {
     public Dimension getD() {
         return d;
     }
-    
 
     public void addBall() {
-        Ball b = new Ball(240, 240, 2, 1, 20, 325,  "N");
+        Ball b = new Ball(240, 240, 2, 1, 20, 325, "N");
         b.setColor(Color.yellow);
         //new Thread(b).start();
         balls.add(b);
     }
 
-    
     /**
      * Main life cicle
      */

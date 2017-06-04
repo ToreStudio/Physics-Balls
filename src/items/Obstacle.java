@@ -28,9 +28,8 @@ public class Obstacle extends Item {
      * @param y
      * @param width
      * @param height
-     * @param parent
      */
-    public Obstacle(float x, float y, float width, float height, Space parent) {
+    public Obstacle(float x, float y, float width, float height) {
         super(x, y, width * height / 2, Color.LIGHT_GRAY);
         this.width = width;
         this.height = height;

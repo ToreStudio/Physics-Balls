@@ -56,7 +56,7 @@ public class Physics {
 
     public static void checkCollision(Ball ball, Space parent) {
         Physics.ballStopItemCollision(ball, parent.getStopItems());
-        Physics.ballObstaculoCollision(ball, parent.getObstaculo());
+        Physics.ballObstaculoCollision(ball, parent.getObstacle());
         Physics.ballWallCollision(ball, parent.getD());
         Physics.ballBallCollission(ball, parent.getBalls(), parent);
     }
@@ -95,58 +95,61 @@ public class Physics {
         }
     }
 
-    public synchronized static void ballObstaculoCollision(Ball b, Obstacle o) {
-        if (o.intersects(b)) {
+    public synchronized static void ballObstaculoCollision(Ball b, ArrayList<Obstacle> o) {
+        
+        for (int i = 0; i < o.size(); i++) {
+        if (o.get(i).intersects(b)) {
             //Para evitar solapamiento con el obstaculo
             do {
                 b.setX(b.getX() - b.getSpeedx() / 20);
                 b.setY(b.getY() - b.getSpeedy() / 20);
-            } while (o.intersects(b));
+            } while (o.get(i).intersects(b));
             b.setX(b.getX() + b.getSpeedx() / 20);
             b.setY(b.getY() + b.getSpeedy() / 20);
 
             //Para verificar si pega en las esquinas
             boolean down = false, up = false, right = false, left = false;
             //pega por abajo
-            if (b.getY() - b.getRadius() < o.getY() + o.getHeight() && b.getY() + b.getRadius() > o.getY() + o.getHeight()) {
+            if (b.getY() - b.getRadius() < o.get(i).getY() + o.get(i).getHeight() && b.getY() + b.getRadius() > o.get(i).getY() + o.get(i).getHeight()) {
                 down = true;
             }
             //pega por la derecha
-            if (b.getX() - b.getRadius() < o.getX() + o.getWidth() && b.getX() + b.getRadius() > o.getX() + o.getWidth()) {
+            if (b.getX() - b.getRadius() < o.get(i).getX() + o.get(i).getWidth() && b.getX() + b.getRadius() > o.get(i).getX() + o.get(i).getWidth()) {
                 right = true;
             }
             //pega por arriba
-            if (b.getY() + b.getRadius() > o.getY() && b.getY() - b.getRadius() < o.getY()) {
+            if (b.getY() + b.getRadius() > o.get(i).getY() && b.getY() - b.getRadius() < o.get(i).getY()) {
                 up = true;
             }
             //pega por izquierda
-            if (b.getX() + b.getRadius() > o.getX() && b.getX() - b.getRadius() < o.getX()) {
+            if (b.getX() + b.getRadius() > o.get(i).getX() && b.getX() - b.getRadius() < o.get(i).getX()) {
                 left = true;
             }
             
             //Se efectua el rebote dependiendo del punto de colision
             if (up && right) {
-                calcBounceCorner(b, o.getX()+o.getWidth(), o.getY());
+                calcBounceCorner(b, o.get(i).getX()+o.get(i).getWidth(), o.get(i).getY());
             } else if (up && left) {
-                calcBounceCorner(b, o.getX(), o.getY());
+                calcBounceCorner(b, o.get(i).getX(), o.get(i).getY());
             } else if (down && right) {
-                calcBounceCorner(b, o.getX()+o.getWidth(), o.getY()+o.getHeight());
+                calcBounceCorner(b, o.get(i).getX()+o.get(i).getWidth(), o.get(i).getY()+o.get(i).getHeight());
             } else if (down && left) {
-                calcBounceCorner(b, o.getX(), o.getY()+o.getHeight());
+                calcBounceCorner(b, o.get(i).getX(), o.get(i).getY()+o.get(i).getHeight());
             } else {
-                if (b.getRadius() + b.getX() >= o.getX() + o.getWidth()) {
+                if (b.getRadius() + b.getX() >= o.get(i).getX() + o.get(i).getWidth()) {
                     b.setSpeedx(Math.abs(b.getSpeedx()));
                 }
-                if (b.getX() - b.getRadius() <= o.getX()) {
+                if (b.getX() - b.getRadius() <= o.get(i).getX()) {
                     b.setSpeedx(-Math.abs(b.getSpeedx()));
                 }
-                if (b.getRadius() + b.getY() >= o.getY() + o.getHeight()) {
+                if (b.getRadius() + b.getY() >= o.get(i).getY() + o.get(i).getHeight()) {
                     b.setSpeedy(Math.abs(b.getSpeedy()));
                 }
-                if (b.getY() - b.getRadius() <= o.getY()) {
+                if (b.getY() - b.getRadius() <= o.get(i).getY()) {
                     b.setSpeedy(-Math.abs(b.getSpeedy()));
                 }
             }
+        }
         }
 
     }

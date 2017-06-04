@@ -5,8 +5,10 @@
  */
 package physicballs;
 
+import database.DBHandler;
 import java.awt.Container;
 import java.awt.GridLayout;
+import java.util.List;
 import javax.swing.JFrame;
 import rules.SpaceRules;
 
@@ -19,19 +21,27 @@ public class PhysicBalls extends JFrame {
     /**
      * Global parameters
      */
-    private Container content;
-    private Space space = new Space(1000, 600, 10);
+    private Container content;   
 
     /**
      * Constructor
      */
     public PhysicBalls() {
-        init();
-        new Thread(space).start();
+        
+      DBHandler db= new DBHandler();
+      Space space;
+      List<Space> list=  db.selectSpace("golf");
+        
+        for (int i = 0; i < list.size(); i++) {
 
+            String spaceName = list.get(i).getName();
+            space = new Space(1000,600,spaceName);           
+             init(space);
+             new Thread(space).start();    
+        }
     }
 
-    public void init() {
+    public void init(Space space) {
         //initial values
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocation(0, 0);
